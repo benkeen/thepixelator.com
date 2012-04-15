@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>The Pixelator</title>
+	<link rel="stylesheet" href="resources/css/styles.css">
+	<link href="resources/scripts/jquery-ui-1.8.10.custom/css/custom-theme/jquery-ui-1.8.10.custom.css" rel="stylesheet" />	
+	<script src="resources/scripts/modernizr-1.7.min.js"></script>
+	<script src="resources/scripts/jquery.js"></script>
+	<script src="resources/scripts/ahpi.imgload.js"></script>
+	<script src="resources/scripts/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>
+	<script src="resources/scripts/close-pixelate.js"></script>
+	<script src="resources/scripts/pixelator.js?v=3"></script>
+
+	<script>
+	$(function() {
+		// draw the site logo
+		logo_ns.init();
+		pixelator.check_no_canvas();
+
+		// stuff relating to the About dialog
+		$("#about").bind("click", pixelator.about);
+		$("#toggle_about_source").bind("click", pixelator.toggle_about_source);
+		
+		// top buttons
+		$("#link_to_image").bind("click", pixelator.generate_link);		
+		$("#generate_js").bind("click", pixelator.generate_js);	
+		$("#save_image").bind("click", pixelator.save_image);
+	});
+
+	// Google Analytics
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount', 'UA-21945945-1']);
+	_gaq.push(['_trackPageview']);
+
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	})();
+	</script>
+</head>
+<body>
+
+	<header>
+		<a href="http://thepixelator.com"><canvas id="logo" width="100" height="100"></canvas></a>
+		<hgroup>
+			<h1><a href="/">The Pixelator</a> &raquo; Comments</h1>		
+			<h2>
+				An experiment to provide a little interaction to David DeSandro's excellent 
+				<a href="http://desandro.com/resources/close-pixelate/" target="_blank">Close-Pixelate</a> library.
+			</h2>
+		</hgroup>
+		<div class="clear"></div>
+	</header>
+
+	<section>
+
+        <div style="width: 800px">
+		<div id="disqus_thread"></div>
+		<script type="text/javascript">
+			var disqus_shortname = 'thepixelator';
+		
+			// The following are highly recommended additional parameters. Remove the slashes in front to use.
+			// var disqus_identifier = 'unique_dynamic_id_1234';
+			// var disqus_url = 'http://example.com/permalink-to-page.html';
+		
+			/* * * DON'T EDIT BELOW THIS LINE * * */
+			(function() {
+				var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+				dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+				(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+			})();
+		</script>
+		<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+		<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+        </div>
+
+	</section>
+	<footer>
+		<nav>
+			<h1>Scripts used on this site</h1>
+			<ul>
+				<li><a href="http://desandro.com/resources/close-pixelate/">Close-pixelate</a></li>
+				<li><a href="http://www.modernizr.com/">Modernizr</a></li>
+				<li><a href="http://goo.gl/">Google URL Shortener</a></li>
+				<li><a href="http://jquery.com">jQuery</a> / <a href="http://jqueryui.com">jQuery UI</a></li>
+			</ul>
+		</nav>
+		<nav>
+			<h1>Other links</h1>
+			<ul>
+				<li><a href="#" id="about">About this site</a></li>
+				<li><a href="comments.html">Comments</a></li>
+				<li><a href="https://developer.mozilla.org/en/canvas_tutorial">Canvas tutorial</a></li>
+				<li><a href="http://diveintohtml5.org/canvas.html#divingin">Dive into HTML5: Canvas</a></li>
+			</ul>
+		</nav>
+		<nav>
+			<h1>The author</h1>
+			<ul>
+				<li><a href="http://twitter.com/#!/vancouverben">@vancouverben</a></li>
+			</ul>
+		</nav>
+		<div class="clear"></div>
+	</footer>
+
+	<!-- the remainder of the page contains markup for styles, dialog windows and raw markup for the JS -->
+	<span id="left_border" class="page_border"></span>
+	<span id="right_border" class="page_border"></span>
+
+	<!-- doesn't actually use jQuery templates, I'm just using it to hide the markup -->
+	<script type="text/x-jquery-tmpl" id="setting_group_template">
+	<ul class="setting_group">
+		<li>
+			<div class="delete_setting">X</div>
+			<div class="layer_num">
+				<input type="checkbox" id="enable%%ROW%%" class="enabled" checked />
+				<label class="enabled_group" for="enable%%ROW%%">Enable Layer %%ROW%%</label>
+			</div>
+			<div class="hidden row">%%ROW%%</div>
+		</li>
+		<li>
+			<label>Shape</label>
+			<div class="setting_field">
+				<select name="shape%%ROW%%" class="shape">
+				<option value="circle" %%CIRCLE_SELECTED%%>Circle</option>
+				<option value="square" %%SQUARE_SELECTED%%>Square</option>
+				<option value="diamond" %%DIAMOND_SELECTED%%>Diamond</option>
+				</select>
+			</div>
+			<div class="clear"></div>
+		</li>
+		<li class="sliders">
+			<label>Spacing</label>
+			<div class="setting_field">
+				<input type="range" class="resolution" min="8" max="200" step="2" value="%%RESOLUTION%%" />
+			</div>
+			<label>Offset</label>
+			<div class="setting_field">
+				<input type="range" class="offset" min="0" max="100" step="1" value="%%OFFSET%%" />
+			</div>
+			<div class="clear"></div>
+		</li>
+		<li class="sliders">
+			<label>Size</label>
+			<div class="setting_field">
+				<input type="range" class="size" min="2" max="200" step="1" value="%%SIZE%%" />
+			</div>
+			<label>Alpha</label>
+			<div class="setting_field">
+				<input type="range" class="alpha" min="0.001" max="1" step="0.01" value="%%ALPHA%%" />
+			</div>
+			<div class="clear"></div>
+		</li>
+	</ul>
+	</script>
+
+	<div class="hidden dialog" id="about_content">
+		<p>
+			<i>The Pixelator</i> is really nothing more than an excuse to play around with Canvas, a fun new(ish) HTML5 technology for
+			creating images on the fly with javascript. I'd spent a couple of evenings experimenting when a co-worker
+			(<a href="http://twitter.com/#!/estwo">@estwo</a>) sent me a link to DeSandro's amazing
+			<a href="http://desandro.com/resources/close-pixelate/" target="_blank">Close-Pixelate</a> script. Wow. So awesome. But
+			the script cried out for a UI to let people construct their own patterns dynamically, and not have to wade through code.
+			For me, the fun lies in playing with it - finding what patterns work and what don't. So all I really did was slap on a UI.
+		</p>
+		<p>
+			For me, Canvas feels like ZX Spectrum (48K) programming all over again. I get that same feeling of awesomeness as
+			I did when I was 8, seeing a few lines of abstract mathematical code transformed into something real on the screen -
+			entirely without the aid of any mind-enhancing drugs. Enjoy!
+		</p>
+		<p>
+			&#8212; <a href="http://www.benjaminkeen.com" target="_blank">Ben</a>
+		</p>
+		<canvas id="about_canvas" width="620" height="270"></canvas>
+		<textarea id="swirly_source" class="hidden"><!DOCTYPE html>
+<html>
+<head>
+  <title>A Swirly</title>
+  <script>
+  var ns = {
+    ctx:          null,
+    currInterval: null,
+    circle_size:  4,
+    count:        0,
+
+    init: function() {
+      ns.ctx = document.getElementById('canvas').getContext('2d');
+      ns.ctx.translate(225, 225);
+      ns.start();  
+    },
+
+    start: function() {
+      ns.currInterval = setInterval(function() { ns.draw() }, 5);
+    },
+
+    draw: function() {
+      ns.ctx.rotate(Math.PI*2 / 80);
+      ns.ctx.fillStyle = 'rgb(0, ' + Math.ceil(ns.count * 1.02) + ', ' + Math.ceil(ns.count * 1.6) + ')';
+    
+      ns.ctx.beginPath();
+      ns.ctx.arc(0+ns.count/2, 0+ns.count/3, ns.circle_size, 0, Math.PI*2, false);
+      ns.ctx.fill();
+
+      ns.count += .2;
+      ns.circle_size -= 0.002;
+			
+      // once the circle is small enough, clear the interval
+      if (ns.circle_size <= 0.01) {
+        clearInterval(ns.currInterval);
+      }			
+    }
+  }
+  </script>
+</head>
+<body onload="ns.init()">
+  <canvas id="canvas" width="450" height="450"></canvas>
+</body>
+</html></textarea>
+		
+		<span id="toggle_about_source">View Swirly Source</span>
+	</div>
+
+</body>
+</html>
