@@ -10,55 +10,8 @@
 	<script src="resources/scripts/ahpi.imgload.js"></script>
 	<script src="resources/scripts/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>
 	<script src="resources/scripts/close-pixelate.js"></script>
-	<script src="resources/scripts/pixelator.js?v=3"></script>
-
-	<script>
-	$(function() {
-		// draw the site logo
-		logo_ns.init();
-		pixelator.check_no_canvas();
-
-		// now down to work! Initialize the sortables
-		$("#setting_groups").sortable({
-			axis:	 "y",
-			update: function() { pixelator.resort_layers(); pixelator.repixelate(); }
-		});
-		$(".delete_setting").live("click", pixelator.delete_setting);
-		$("#preset_styles li").bind("click", function() {
-			pixelator.load_preset($(this).text(), true);
-		});
-		$("#preset_images").bind("change", function() { $("#ir1").attr("checked", "checked"); pixelator.load_image() });
-		$("#settings").live("change", pixelator.repixelate);
-		$("#image_url").bind("keyup", function() { $("#ir2").attr("checked", "checked"); })
-
-		// here, the user's been linked to someone's custom generated image
-		var custom_image = pixelator._get_param_by_name("image");
-		if (custom_image != "") {
-			pixelator.decode_url();
-		} else {
-			// load the default preset by default
-			pixelator.load_preset(1);
-
-			// either load a custom image or the default example image
-			var custom_image = pixelator._get_param_by_name("url");
-			if (custom_image != "") {
-				$("#image_url").val(custom_image);
-				pixelator.load_image(custom_image);
-			} else {
-				pixelator.load_image();
-			}
-		}
-
-		// stuff relating to the About dialog
-		$("#about").bind("click", pixelator.about);
-		$("#toggle_about_source").bind("click", pixelator.toggle_about_source);
-
-		// top buttons
-		$("#link_to_image").bind("click", pixelator.generate_link);
-		$("#generate_js").bind("click", pixelator.generate_js);
-		$("#save_image").bind("click", pixelator.save_image);
-	});
-	</script>
+	<script src="resources/scripts/pixelator.js?v=4"></script>
+    <script>$(pixelator.init);</script>
 </head>
 <body>
 
@@ -106,7 +59,16 @@
 			</div>
 		</div>
 		<div id="col2">
-			<div class="image_radios">
+
+            <ul id="view_mode">
+                <li>Original Image</li>
+                <li class="selected">Pixelated Image</li>
+                <li>Full Screen</li>
+                <li>Full Screen Animated</li>
+            </ul>
+            <div class="clear pad_small"></div>
+
+            <div class="image_radios">
 				<input type="radio" name="ir" id="ir1" checked="checked" value="examples" />
 				<label for="ir1">Examples</label>
 			</div>
@@ -140,7 +102,7 @@
 			</div>
 			<div class="image_settings">
 				<input type="text" id="image_url" />
-				<input type="button" value="Load" onclick="pixelator.load_remote_image()" />
+				<input type="button" value="Load" id="load_remote_image_btn" />
 			</div>
 			<div class="clear"></div>
 			<div class="vpad"></div>
@@ -232,7 +194,7 @@
 
 	<div class="hidden dialog" id="about_content">
 		<p>
-			<i>The Pixelator</i> is really nothing more than an excuse to play around with Canvas, a fun new(ish) HTML5 technology for
+			<i>The Pixelator</i> is really nothing more than an excuse to play around with Canvas, an HTML5 technology for
 			creating images on the fly with javascript. I'd spent a couple of evenings experimenting when a co-worker
 			(<a href="http://twitter.com/#!/estwo">@estwo</a>) sent me a link to DeSandro's amazing
 			<a href="http://desandro.com/resources/close-pixelate/" target="_blank">Close-Pixelate</a> script. Wow. So awesome. But

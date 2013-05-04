@@ -1,4 +1,4 @@
-/* global $:false*/
+/*global $:false,ClosePixelate:false,Modernizr:false*/
 /**
  * pixelator.js
  *
@@ -21,6 +21,62 @@ var pixelator = {
 	generate_js_dialog:   $('<div class="dialog" />'),
 	no_canvas_dialog:     $('<div class="dialog" />'),
 
+	/**
+	 * Our main init function, called by the pixelator homepage.
+	 */
+	init: function() {
+		"use strict";
+
+		logo_ns.init();
+		pixelator.check_no_canvas();
+		pixelator.assign_event_handlers();
+
+		// here, the user's been linked to someone's custom generated image
+		var custom_image = pixelator._get_param_by_name("image");
+		if (custom_image !== "") {
+			pixelator.decode_url();
+		} else {
+			// load the default preset by default
+			pixelator.load_preset({ preset_num: 1 });
+
+			// either load a custom image or the default example image
+			custom_image = pixelator._get_param_by_name("url");
+			if (custom_image !== "") {
+				$("#image_url").val(custom_image);
+				pixelator.load_image(custom_image);
+			} else {
+				pixelator.load_image();
+			}
+		}
+	},
+
+	assign_event_handlers: function() {
+		"use strict";
+
+		$("#setting_groups").sortable({
+			axis:	"y",
+			update: function() { pixelator.resort_layers(); pixelator.repixelate(); }
+		});
+		$("#settings").on("click", ".delete_setting", pixelator.delete_setting);
+		$("#preset_styles").on("click", "li", function() {
+			pixelator.load_preset({ preset_num: $(this).text(), repixelate: true });
+		});
+		$("#preset_images").on("change", function() { $("#ir1").attr("checked", "checked"); pixelator.load_image(); });
+		$("#settings").on("change", pixelator.repixelate);
+		$("#image_url").on("keyup", function() { $("#ir2").attr("checked", "checked"); });
+		$("#load_remote_image_btn").on("click", pixelator.load_remote_image);
+
+		// stuff relating to the About dialog
+		$("#about").on("click", pixelator.about);
+		$("#toggle_about_source").on("click", pixelator.toggle_about_source);
+
+		// top buttons
+		$("#link_to_image").on("click", pixelator.generate_link);
+		$("#generate_js").on("click", pixelator.generate_js);
+		$("#save_image").on("click", pixelator.save_image);
+		$("#view_mode").on("click", "li", pixelator.change_view_mode);
+	},
+
 	check_no_canvas: function() {
         "use strict";
 		if (!Modernizr.canvas) {
@@ -36,6 +92,10 @@ var pixelator = {
 				}
 			});
 		}
+	},
+
+	change_view_mode: function() {
+		"use strict";
 	},
 
 	load_url: function(image) {
@@ -81,8 +141,8 @@ var pixelator = {
 		if (pixelator.canvas === null) {
 			pixelator.canvas = $("#image")[0];
 			pixelator.ctx    = pixelator.canvas.getContext('2d');
-			pixelator.canvas_width     = parseInt($(pixelator.canvas).attr("width"));
-			pixelator.canvas_height    = parseInt($(pixelator.canvas).attr("height"));
+			pixelator.canvas_width  = parseInt($(pixelator.canvas).attr("width"), 10);
+			pixelator.canvas_height = parseInt($(pixelator.canvas).attr("height"), 10);
 		}
 
 		ClosePixelate.renderClosePixels(pixelator.ctx, pixelator.get_settings(), pixelator.canvas_width, pixelator.canvas_height);
@@ -97,10 +157,10 @@ var pixelator = {
 			}
 			settings.push({
 				shape:      $(this).find(".shape").val(),
-				resolution: parseInt($(this).find(".resolution").val()),
-				offset:     parseInt($(this).find(".offset").val()),
-				size:       parseInt($(this).find(".size").val()),
-				alpha:      parseFloat($(this).find(".alpha").val())
+				resolution: parseInt($(this).find(".resolution").val(), 10),
+				offset:     parseInt($(this).find(".offset").val(), 10),
+				size:       parseInt($(this).find(".size").val(), 10),
+				alpha:      parseFloat($(this).find(".alpha").val(), 10)
 			});
 		});
 
@@ -316,23 +376,28 @@ var pixelator = {
 		return false;
 	},
 
-	load_preset: function(num, repixelate) {
+	load_preset: function(params) {
         "use strict";
-		num = parseInt(num, 10);
+
+		var settings = $.extend({
+			preset_num: 1,
+			repixelate: false
+		}, params);
+		var num = parseInt(settings.preset_num, 10);
 
 		$("#setting_groups").html("");
 		pixelator.num_settings = 0;
 
-		var settings = [];
+		var pixelateSettings = [];
 		switch (num) {
 			case 1:
-				settings = [
+				pixelateSettings = [
 					{ shape: 'diamond', resolution: 98, size: 200, offset: 0, alpha: 1 },
 					{ shape: 'circle', resolution: 20, size: 19, offset: 0, alpha: 1 }
 				];
 				break;
 			case 2:
-				settings = [
+				pixelateSettings = [
 					{ shape: 'diamond', resolution: 14, size: 27, offset: 15, alpha: 0.991 },
 					{ shape: 'circle', resolution: 50, size: 48, offset: 0, alpha: 0.651 },
 					{ shape: 'circle', resolution: 50, size: 23, offset: 8, alpha: 0.5 },
@@ -340,7 +405,7 @@ var pixelator = {
 				];
 				break;
 			case 3:
-				settings = [
+				pixelateSettings = [
 					{ shape: 'diamond', resolution: 200, size: 10, offset: 5, alpha: 0.8 },
 					{ shape: 'diamond', resolution: 70, size: 80, offset: 15, alpha: 0.1 },
 					{ shape: 'diamond', resolution: 112, size: 40, offset: 15, alpha: 0.3 },
@@ -349,7 +414,7 @@ var pixelator = {
 				];
 				break;
 			case 4:
-				settings = [
+				pixelateSettings = [
 					{ shape: 'circle', resolution: 32, size: 180, offset: 0, alpha: 0.241 },
 					{ shape: 'diamond', resolution: 8, size: 10, offset: 0, alpha: 0.391 },
 					{ shape: 'circle', resolution: 52, size: 30, offset: 0, alpha: 0.261 },
@@ -357,28 +422,28 @@ var pixelator = {
 				];
 				break;
 			case 5:
-				settings = [
+				pixelateSettings = [
 					{ shape: "square", resolution: 32, offset: 0, size: 4, alpha: 1 },
 					{ shape: "square", resolution: 32, offset: 0, size: 30, alpha: 0.5 },
 					{ shape: "diamond", resolution: 32, offset: 0, size: 90, alpha: 0.1 }
 				];
 				break;
 			case 6:
-				settings = [
+				pixelateSettings = [
 					{ shape: 'circle', resolution: 8, size: 50, offset: 0, alpha: 0.741 },
 					{ shape: 'diamond', resolution: 10, size: 13, offset: 13, alpha: 0.611 },
 					{ shape: 'circle', resolution: 62, size: 73, offset: 0, alpha: 0.301 }
 				];
 				break;
 			case 7:
-				settings = [
+				pixelateSettings = [
 					{ shape: 'square', resolution: 86, size: 83, offset: 0, alpha: 0.001 },
 					{ shape: 'diamond', resolution: 200, size: 200, offset: 0, alpha: 0.161 },
 					{ shape: 'circle', resolution: 8, size: 6, offset: 8, alpha: 1 }
 				];
 				break;
 			case 8:
-				settings = [
+				pixelateSettings = [
 					{ shape: 'diamond', resolution: 32, size: 28, offset: 0, alpha: 0.501 },
 					{ shape: 'diamond', resolution: 194, size: 194, offset: 100, alpha: 0.551 },
 					{ shape: 'diamond', resolution: 32, size: 14, offset: 0, alpha: 0.5 },
@@ -390,9 +455,8 @@ var pixelator = {
 
 
 		// display the preset settings
-		for (var i=0, j=settings.length; i<j; i++) {
-			var curr_setting_id = pixelator.num_settings;
-			pixelator.add_setting(settings[i]);
+		for (var i=0, j=pixelateSettings.length; i<j; i++) {
+			pixelator.add_setting(pixelateSettings[i]);
 		}
 
 		// update the selected preset style
@@ -400,8 +464,8 @@ var pixelator = {
 		$("#preset_styles li:nth-child(" + num + ")").addClass("selected");
 
 		// render the image
-		if (repixelate === true) {
-			ClosePixelate.renderClosePixels(pixelator.ctx, settings, pixelator.canvas_width, pixelator.canvas_height);
+		if (settings.repixelate === true) {
+			ClosePixelate.renderClosePixels(pixelator.ctx, pixelateSettings, pixelator.canvas_width, pixelator.canvas_height);
 		}
 	},
 
@@ -431,8 +495,8 @@ var pixelator = {
 					if ($("canvas#image").length) {
 						pixelator.canvas = $("#image")[0];
 						pixelator.ctx    = pixelator.canvas.getContext("2d");
-						pixelator.canvas_width  = parseInt($(pixelator.canvas).attr("width"));
-						pixelator.canvas_height = parseInt($(pixelator.canvas).attr("height"));
+						pixelator.canvas_width  = parseInt($(pixelator.canvas).attr("width"), 10);
+						pixelator.canvas_height = parseInt($(pixelator.canvas).attr("height"), 10);
 						ready = true;
 					}
 					return ready;
@@ -490,7 +554,7 @@ var pixelator = {
 		var regexS = "[\\?&]"+name+"=([^&#]*)";
 		var regex = new RegExp(regexS);
 		var results = regex.exec(window.location.href);
-		if (results == null) {
+		if (results === null) {
 			return "";
 		} else {
 			return decodeURIComponent(results[1].replace(/\+/g, " "));
@@ -558,7 +622,7 @@ var ns = {
 		ns.ctx.arc(0+ns.count/2, 0+ns.count/3, ns.circle_size, 0, Math.PI*2, false);
 		ns.ctx.fill();
 
-		ns.count += .2;
+		ns.count += 0.2;
 		ns.circle_size -= 0.003;
 
 		// once the circle is small enough, clear the interval
@@ -566,7 +630,7 @@ var ns = {
 			clearInterval(ns.currInterval);
 		}
 	}
-}
+};
 
 
 var logo_ns = {
@@ -591,7 +655,7 @@ var logo_ns = {
 		logo_ns.ctx.arc(0+logo_ns.count/2, 0+logo_ns.count/3, logo_ns.circle_size, 0, Math.PI*2, false);
 		logo_ns.ctx.fill();
 
-		logo_ns.count += .2;
+		logo_ns.count += 0.2;
 		logo_ns.circle_size -= 0.0055;
 
 		// once the circle is small enough, clear the interval
@@ -609,17 +673,19 @@ var $Q = {
     // 1: boolean test to determine completion
     queue: [],
     run: function() {
+		"use strict";
         if (!$Q.queue.length) {
             return;
         }
         // if this code hasn't begun being executed, start 'er up
         if (!$Q.queue[0][2]) {
             $Q.queue[0][0]();
-            $Q.queue[0][2] = window.setInterval("$Q.process()", 50);
+            $Q.queue[0][2] = window.setInterval(function() { $Q.process(); }, 50);
         }
     },
 
     process: function() {
+		"use strict";
         if ($Q.queue[0][1]()) {
             window.clearInterval($Q.queue[0][2]);
             $Q.queue.shift();
