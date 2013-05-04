@@ -1,3 +1,6 @@
 .project
 .settings/*
 .idea/*
+.idea/inspectionProfiles/Project_Default.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/jsLinters/jshint.xml
