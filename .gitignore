@@ -1,3 +1,10 @@
 .project
 .settings/*
+<<<<<<< HEAD
 .idea/*
+=======
+.idea/*
+.idea/inspectionProfiles/Project_Default.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/jsLinters/jshint.xml
+>>>>>>> git ignore update
