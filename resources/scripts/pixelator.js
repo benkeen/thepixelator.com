@@ -1,10 +1,12 @@
+/* global $:false*/
 /**
- * Pixelator.js
+ * pixelator.js
  *
  * Adds a simple UI to David DeSandro's Close-Pixelate script:
  * http://desandro.com/resources/close-pixelate/
  *
- * Author: Ben Keen - @vancouverben / benjaminkeen.com
+ * @author  Ben Keen - @vancouverben
+ * @version 1.1.0
  */
 
 var pixelator = {
@@ -14,15 +16,16 @@ var pixelator = {
 	ctx:          null,
 	num_settings: 0,
 	root_url:     "http://thepixelator.com",
-	save_image_dialog:    $("<div class=\"dialog\" />"),
-	generate_link_dialog: $("<div class=\"dialog\" />"),
-	generate_js_dialog:   $("<div class=\"dialog\" />"),
-	no_canvas_dialog:     $("<div class=\"dialog\" />"),
+	save_image_dialog:    $('<div class="dialog" />'),
+	generate_link_dialog: $('<div class="dialog" />'),
+	generate_js_dialog:   $('<div class="dialog" />'),
+	no_canvas_dialog:     $('<div class="dialog" />'),
 
 	check_no_canvas: function() {
+        "use strict";
 		if (!Modernizr.canvas) {
-			$(pixelator.no_canvas_dialog).html("<p>Sorry! Your browser doesn't support the HTML5 Canvas tag. This website will not work for you.</p>"
-				+ "<p>Try again in a more modern browser.</p>").dialog({
+			$(pixelator.no_canvas_dialog).html("<p>Sorry! Your browser doesn't support the HTML5 Canvas tag. This website will not work for you.</p>" +
+				"<p>Try again in a more modern browser.</p>").dialog({
 				title: "It's a sad day...",
 				modal: true,
 				minWidth: 400,
@@ -36,12 +39,14 @@ var pixelator = {
 	},
 
 	load_url: function(image) {
+        "use strict";
 		pixelator.load_image($("#image_url").val());
 	},
 
-	load_remote_image: function(url) {
+	load_remote_image: function() {
+        "use strict";
 		var url = $("#image_url").val();
-		if ($.trim(url) == "") {
+		if ($.trim(url) === "") {
 			return;
 		}
 		$.ajax({
@@ -72,17 +77,19 @@ var pixelator = {
 	 * Called anytime anything changes.
 	 */
 	repixelate: function() {
-		if (pixelator.canvas == null) {
+        "use strict";
+		if (pixelator.canvas === null) {
 			pixelator.canvas = $("#image")[0];
 			pixelator.ctx    = pixelator.canvas.getContext('2d');
 			pixelator.canvas_width     = parseInt($(pixelator.canvas).attr("width"));
-			pixelator.canvas_height    = parseInt($(pixelator.canvas).attr("height"))
+			pixelator.canvas_height    = parseInt($(pixelator.canvas).attr("height"));
 		}
 
 		ClosePixelate.renderClosePixels(pixelator.ctx, pixelator.get_settings(), pixelator.canvas_width, pixelator.canvas_height);
 	},
 
 	get_settings: function() {
+        "use strict";
 		var settings = [];
 		$("#settings .setting_group").each(function() {
 			if (!$(this).find(".enabled").attr("checked")) {
@@ -101,6 +108,7 @@ var pixelator = {
 	},
 
 	add_setting: function(default_settings) {
+        "use strict";
 		var data = $.extend({
 			shape:            "circle",
 			circle_selected:  "",
@@ -164,6 +172,7 @@ var pixelator = {
 	},
 
 	delete_setting: function() {
+        "use strict";
 		$(this).closest(".setting_group").remove();
 		pixelator.resort_layers();
 		pixelator.repixelate();
@@ -172,6 +181,7 @@ var pixelator = {
 	// called whenever a layer is added, removed or re-sorted. It just updates the visual
 	// order "Layer X" of the row
 	resort_layers: function() {
+        "use strict";
 		var curr_row = 1;
 		$(".setting_group").each(function() {
 			$(this).find(".enabled_group").html("Enable Layer " + curr_row);
@@ -182,17 +192,18 @@ var pixelator = {
 
 	// this serializes the current settings and shortens the URL with google URL shortener
 	generate_link: function() {
+        "use strict";
 		var settings = pixelator.get_settings();
 		var serialized_settings = [];
 		for (var i=0, j=settings.length; i<j; i++) {
-			serialized_settings.push("layers=shape:" + settings[i].shape + ",size:" + settings[i].size + ","
-				+ "resolution:" + settings[i].resolution + ",alpha:" + settings[i].alpha + ",offset:" + settings[i].offset);
+			serialized_settings.push("layers=shape:" + settings[i].shape + ",size:" + settings[i].size + "," +
+				"resolution:" + settings[i].resolution + ",alpha:" + settings[i].alpha + ",offset:" + settings[i].offset);
 		}
 
 		var settings_str = serialized_settings.join("|");
 		var image_type   = $("input[name=ir]:checked").val();
 		var image        = "";
-		if (image_type == "examples") {
+		if (image_type === "examples") {
 			image = $("#preset_images").val();
 		} else {
 			image = $("#image_url").val();
@@ -210,7 +221,7 @@ var pixelator = {
 					dataType: "json",
 					data:     { url: current_url },
 					success: function(response) {
-						$(pixelator.generate_link_dialog).html("<p>You can use this URL to link to your image.</p><input type=\"text\" id=\"short_url\" value=\"" + response.id + "\" />");
+						$(pixelator.generate_link_dialog).html('<p>You can use this URL to link to your image.</p><input type="text" id="short_url" value="' + response.id + '" />');
 						$("#short_url").select();
 					},
 					// incomplete
@@ -229,9 +240,10 @@ var pixelator = {
 
 	// zero error checking on this
 	decode_url: function() {
+        "use strict";
 		var image_type   = pixelator._get_param_by_name("image_type");
 		var custom_image = pixelator._get_param_by_name("image");
-		if (image_type == "examples") {
+		if (image_type === "examples") {
 			$("#ir1").attr("checked", "checked");
 			$("#preset_images").val(custom_image);
 		} else {
@@ -253,16 +265,16 @@ var pixelator = {
 						curr_setting.shape = key_val[1];
 						break;
 					case "size":
-						curr_setting.size = parseInt(key_val[1]);
+						curr_setting.size = parseInt(key_val[1], 10);
 						break;
 					case "resolution":
-						curr_setting.resolution = parseInt(key_val[1]);
+						curr_setting.resolution = parseInt(key_val[1], 10);
 						break;
 					case "offset":
-						curr_setting.offset = parseInt(key_val[1]);
+						curr_setting.offset = parseInt(key_val[1], 10);
 						break;
 					case "alpha":
-						curr_setting.alpha = parseFloat(key_val[1]);
+						curr_setting.alpha = parseFloat(key_val[1], 10);
 						break;
 				}
 			}
@@ -270,7 +282,7 @@ var pixelator = {
 			pixelator.add_setting(curr_setting);
 		}
 
-		if (image_type == "examples") {
+		if (image_type === "examples") {
 			pixelator.load_image();
 		} else {
 			pixelator.load_image(custom_image);
@@ -278,18 +290,18 @@ var pixelator = {
 	},
 
 	generate_js: function() {
+        "use strict";
 		var settings = pixelator.get_settings();
 
 		var rows = [];
 		for (var i=0; i<settings.length; i++) {
-			rows.push("\t{ shape: '" + settings[i].shape + "', resolution: " + settings[i].resolution
-							+ ", size: " + settings[i].size + ", offset: " + settings[i].offset + ", alpha: " + settings[i].alpha + " }");
+			rows.push("\t{ shape: '" + settings[i].shape + "', resolution: " + settings[i].resolution +
+						", size: " + settings[i].size + ", offset: " + settings[i].offset + ", alpha: " + settings[i].alpha + " }");
 		}
 		var js = "[\n" + rows.join(",\n") + "\n]";
-
-		var content = "<p>This option generates the javascript needed to recreate your current design. For more information on how to use it, download the "
-					+ "<a href=\"https://github.com/desandro/close-pixelate\" target=\"blank\">Close-Pixelate</a> library from github.</p>"
-					+ "<textarea>" + js + "</textarea>";
+		var content = "<p>This option generates the javascript needed to recreate your current design. For more information on how to use it, download the " +
+					"<a href=\"https://github.com/desandro/close-pixelate\" target=\"blank\">Close-Pixelate</a> library from github.</p>" +
+					"<textarea>" + js + "</textarea>";
 		$(pixelator.generate_js_dialog).html(content).dialog({
 			title:   "Close-Pixelate JS",
 			minWidth: 500,
@@ -305,7 +317,8 @@ var pixelator = {
 	},
 
 	load_preset: function(num, repixelate) {
-		var num = parseInt(num);
+        "use strict";
+		num = parseInt(num, 10);
 
 		$("#setting_groups").html("");
 		pixelator.num_settings = 0;
@@ -399,6 +412,7 @@ var pixelator = {
 	 * loaded in the page and is ready to mess around with.
 	 */
 	load_image: function(custom_image_url) {
+        "use strict";
 		var image = "example_images/" + $("#preset_images").val();
 		if (custom_image_url !== undefined) {
 			image = custom_image_url;
@@ -432,8 +446,10 @@ var pixelator = {
 	},
 
 	save_image: function() {
-		$(pixelator.save_image_dialog).html("<p>Please wait while we generate your image. You will prompted to download the .png.</p>"
-			 + "<p>Note: images will be automatically delected from our server after 24 hours.</p><div class=\"loading\"></div>").dialog({
+        "use strict";
+
+		$(pixelator.save_image_dialog).html("<p>Please wait while we generate your image. You will prompted to download the .png.</p>" +
+			"<p>Note: images will be automatically delected from our server after 24 hours.</p><div class=\"loading\"></div>").dialog({
 			title:    "Saving Image",
 			modal:    true,
 			minWidth: 400,
@@ -462,8 +478,14 @@ var pixelator = {
 		return false;
 	},
 
+    animate: function() {
+        "use strict";
+
+    },
 
 	_get_param_by_name: function(name) {
+        "use strict";
+
 		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
 		var regexS = "[\\?&]"+name+"=([^&#]*)";
 		var regex = new RegExp(regexS);
@@ -476,6 +498,8 @@ var pixelator = {
 	},
 
 	about: function() {
+        "use strict";
+
 		$("#about_content").dialog({
 			title:   "About this site",
 			minWidth: 650,
@@ -493,7 +517,8 @@ var pixelator = {
 	},
 
 	toggle_about_source: function() {
-		if ($("#swirly_source").css("display") == "none") {
+        "use strict";
+		if ($("#swirly_source").css("display") === "none") {
 			$("#swirly_source").show();
 			$("#about_canvas").hide();
 			$("#toggle_about_source").html("Back to Swirly");
@@ -513,16 +538,19 @@ var ns = {
 	count:        0,
 
 	init: function() {
+        "use strict";
 		ns.ctx = document.getElementById('about_canvas').getContext('2d');
 		ns.ctx.translate(310, 135);
 		ns.start();
 	},
 
 	start: function() {
-		ns.currInterval = setInterval(function() { ns.draw() }, 5);
+        "use strict";
+		ns.currInterval = setInterval(function() { ns.draw(); }, 5);
 	},
 
 	draw: function() {
+        "use strict";
 		ns.ctx.rotate(Math.PI*2 / 80);
 		ns.ctx.fillStyle = 'rgb(0, ' + Math.ceil(ns.count * 1.02) + ', ' + Math.ceil(ns.count * 1.6) + ')';
 
@@ -548,12 +576,14 @@ var logo_ns = {
 	count:        0,
 
 	init: function() {
+        "use strict";
 		logo_ns.ctx = document.getElementById('logo').getContext('2d');
 		logo_ns.ctx.translate(50, 50);
 		logo_ns.draw();
 	},
 
 	draw: function() {
+        "use strict";
 		logo_ns.ctx.rotate(Math.PI*2 / 50);
 		logo_ns.ctx.fillStyle = 'rgb(0, ' + Math.ceil(logo_ns.count * 2) + ', ' + Math.ceil(logo_ns.count * 5) + ')';
 
@@ -569,34 +599,31 @@ var logo_ns = {
 			logo_ns.draw();
 		}
 	}
-}
+};
 
 
 // see: http://www.benjaminkeen.com/?p=344
 var $Q = {
-		// each index should be an array with two indexes, both functions:
-		// 0: the code to execute
-		// 1: boolean test to determine completion
-		queue: [],
-		run: function()
-		{
-				if (!$Q.queue.length)
-						return;
+    // each index should be an array with two indexes, both functions:
+    // 0: the code to execute
+    // 1: boolean test to determine completion
+    queue: [],
+    run: function() {
+        if (!$Q.queue.length) {
+            return;
+        }
+        // if this code hasn't begun being executed, start 'er up
+        if (!$Q.queue[0][2]) {
+            $Q.queue[0][0]();
+            $Q.queue[0][2] = window.setInterval("$Q.process()", 50);
+        }
+    },
 
-				// if this code hasn't begun being executed, start 'er up
-				if (!$Q.queue[0][2])
-				{
-						$Q.queue[0][0]();
-						$Q.queue[0][2] = window.setInterval("$Q.process()", 50);
-				}
-		},
-		process: function()
-		{
-				if ($Q.queue[0][1]())
-				{
-						window.clearInterval($Q.queue[0][2]);
-						$Q.queue.shift();
-						$Q.run();
-				}
-		}
-}
+    process: function() {
+        if ($Q.queue[0][1]()) {
+            window.clearInterval($Q.queue[0][2]);
+            $Q.queue.shift();
+            $Q.run();
+        }
+    }
+};
