@@ -15,14 +15,14 @@ section {
 	display: block;
 	text-align: left;
 	padding: 20px 30px;
-	margin-top: 140px;
+	margin-top: 125px;
 	border: 0px;
 	overflow-x: hidden;
 	width: 5000px;
 	background-color: #ffffff;
 }
 header {
-	padding: 20px 40px;
+	padding: 12px 32px;
 	display: block;
 	background-color: #F2F2F2;
 	position: fixed;
@@ -59,20 +59,18 @@ header div a:hover {
 }
 header nav {
 	position: absolute;
-	right: 90px;
-	top: 15px;
+	right: 76px;
+	top: 6px;
 }
 header nav ul {
 	list-style: none;
 	margin-top: 10px;
 }
 header nav ul li {
-	margin-bottom: 3px;
+	margin-bottom: 6px;
 	font-style: normal;
 	text-align: left;
 	cursor: pointer;
-}
-header nav ul li {
 	color: #333333;
 	border-radius: 6px;
 	-moz-border-radius: 6px;
@@ -81,8 +79,8 @@ header nav ul li {
 	padding: 4px 20px 4px 45px;
 }
 header nav ul li a {
-  display: block;
-	outline: none;
+    display: block;
+    outline: none;
 }
 #link_to_image {
   background: #cccccc url(../images/web.png) no-repeat 10px 3px;
@@ -197,10 +195,11 @@ ul {
 	height: 20px;
 	background-color: #cccccc;
 	border-bottom-left-radius: 10px;
-	-moz-border-radius-bottomleft: 10px;
 	border-top-right-radius: 10px;
+    -moz-border-radius-bottomleft: 10px;
 	-moz-border-radius-topright: 10px;
 	text-align: center;
+    cursor: pointer;
 }
 .delete_setting:hover {
 	background-color: #990000;

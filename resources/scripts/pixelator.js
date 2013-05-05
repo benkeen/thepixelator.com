@@ -1,4 +1,4 @@
-/*global $:false,ClosePixelate:false,Modernizr:false*/
+/*global $:false,ClosePixelate:false,Modernizr:false,console:false*/
 /**
  * pixelator.js
  *
@@ -16,10 +16,16 @@ var pixelator = {
 	ctx:          null,
 	num_settings: 0,
 	root_url:     "http://thepixelator.com",
+	curr_view_mode: null,
 	save_image_dialog:    $('<div class="dialog" />'),
 	generate_link_dialog: $('<div class="dialog" />'),
 	generate_js_dialog:   $('<div class="dialog" />'),
 	no_canvas_dialog:     $('<div class="dialog" />'),
+
+	// for animation
+	animationCounter: null,
+	animationInterval: null,
+	sliderAnimationData: [],
 
 	/**
 	 * Our main init function, called by the pixelator homepage.
@@ -30,6 +36,7 @@ var pixelator = {
 		logo_ns.init();
 		pixelator.check_no_canvas();
 		pixelator.assign_event_handlers();
+		pixelator.curr_view_mode = $("#view_mode li.selected").data("mode");
 
 		// here, the user's been linked to someone's custom generated image
 		var custom_image = pixelator._get_param_by_name("image");
@@ -55,13 +62,16 @@ var pixelator = {
 
 		$("#setting_groups").sortable({
 			axis:	"y",
-			update: function() { pixelator.resort_layers(); pixelator.repixelate(); }
+			update: function() {
+				pixelator.resort_layers();
+				pixelator.repixelate();
+			}
 		});
-		$("#settings").on("click", ".delete_setting", pixelator.delete_setting);
 		$("#preset_styles").on("click", "li", function() {
 			pixelator.load_preset({ preset_num: $(this).text(), repixelate: true });
 		});
 		$("#preset_images").on("change", function() { $("#ir1").attr("checked", "checked"); pixelator.load_image(); });
+		$("#settings").on("click", ".delete_setting", pixelator.delete_setting);
 		$("#settings").on("change", pixelator.repixelate);
 		$("#image_url").on("keyup", function() { $("#ir2").attr("checked", "checked"); });
 		$("#load_remote_image_btn").on("click", pixelator.load_remote_image);
@@ -75,6 +85,7 @@ var pixelator = {
 		$("#generate_js").on("click", pixelator.generate_js);
 		$("#save_image").on("click", pixelator.save_image);
 		$("#view_mode").on("click", "li", pixelator.change_view_mode);
+		$("#add_layer_link").on("click", function() { pixelator.add_setting({ repixelate: true }); return false; });
 	},
 
 	check_no_canvas: function() {
@@ -82,7 +93,7 @@ var pixelator = {
 		if (!Modernizr.canvas) {
 			$(pixelator.no_canvas_dialog).html("<p>Sorry! Your browser doesn't support the HTML5 Canvas tag. This website will not work for you.</p>" +
 				"<p>Try again in a more modern browser.</p>").dialog({
-				title: "It's a sad day...",
+				title: "Too bad...",
 				modal: true,
 				minWidth: 400,
 				buttons: {
@@ -94,8 +105,39 @@ var pixelator = {
 		}
 	},
 
-	change_view_mode: function() {
+	change_view_mode: function(e) {
 		"use strict";
+		var newMode = $(e.target).data("mode");
+		if (newMode === pixelator.curr_view_mode) {
+			return;
+		}
+
+		$("#view_mode>li.selected").removeClass("selected");
+		$(e.target).addClass("selected");
+		pixelator.curr_view_mode = newMode;
+
+		// now for the juicy part
+		var custom_image_url = $("#image_url").val();
+		switch (newMode) {
+			case "original":
+				if (custom_image_url !== "") {
+					pixelator.load_image(custom_image_url);
+				} else {
+					pixelator.load_image();
+				}
+				pixelator.canvas = null;
+				break;
+			case "pixelate":
+				if (custom_image_url !== "") {
+					pixelator.load_image(custom_image_url);
+				} else {
+					pixelator.load_image();
+				}
+				break;
+			case "animate":
+				pixelator.start_animation();
+				break;
+		}
 	},
 
 	load_url: function(image) {
@@ -138,6 +180,11 @@ var pixelator = {
 	 */
 	repixelate: function() {
         "use strict";
+
+		if (pixelator.curr_view_mode === "original") {
+			return;
+		}
+
 		if (pixelator.canvas === null) {
 			pixelator.canvas = $("#image")[0];
 			pixelator.ctx    = pixelator.canvas.getContext('2d');
@@ -481,37 +528,38 @@ var pixelator = {
 		if (custom_image_url !== undefined) {
 			image = custom_image_url;
 		}
-		$("#image_container").html("<img id=\"image\" />");
+		$("#image_container").html('<img id="image" />');
 
-		$("#image").bind("load", function() {
-			$Q.queue.push([
-				function() {
-					ClosePixelate.imgData = null;
-					pixelator.canvas      = null;
-					document.getElementById(pixelator.image_id).closePixelate(pixelator.get_settings());
-				},
-				function() {
-					var ready = false;
-					if ($("canvas#image").length) {
-						pixelator.canvas = $("#image")[0];
-						pixelator.ctx    = pixelator.canvas.getContext("2d");
-						pixelator.canvas_width  = parseInt($(pixelator.canvas).attr("width"), 10);
-						pixelator.canvas_height = parseInt($(pixelator.canvas).attr("height"), 10);
-						ready = true;
+		if (pixelator.curr_view_mode === "pixelate") {
+			$("#image").bind("load", function() {
+				$Q.queue.push([
+					function() {
+						ClosePixelate.imgData = null;
+						pixelator.canvas      = null;
+						document.getElementById(pixelator.image_id).closePixelate(pixelator.get_settings());
+					},
+					function() {
+						var ready = false;
+						if ($("canvas#image").length) {
+							pixelator.canvas = $("#image")[0];
+							pixelator.ctx    = pixelator.canvas.getContext("2d");
+							pixelator.canvas_width  = parseInt($(pixelator.canvas).attr("width"), 10);
+							pixelator.canvas_height = parseInt($(pixelator.canvas).attr("height"), 10);
+							ready = true;
+						}
+						return ready;
 					}
-					return ready;
-				}
-			]);
+				]);
 
-			$Q.run();
-		});
+				$Q.run();
+			});
+		}
 
 		$("#image_container img").attr("src", image);
 	},
 
 	save_image: function() {
         "use strict";
-
 		$(pixelator.save_image_dialog).html("<p>Please wait while we generate your image. You will prompted to download the .png.</p>" +
 			"<p>Note: images will be automatically delected from our server after 24 hours.</p><div class=\"loading\"></div>").dialog({
 			title:    "Saving Image",
@@ -542,14 +590,80 @@ var pixelator = {
 		return false;
 	},
 
-    animate: function() {
+    start_animation: function() {
         "use strict";
+		var rangeSliders = $("input.animatable");
 
+		// randomly assign a speed and a direction to each slider
+		pixelator.sliderAnimationData = [];
+		for (var i=0; i<rangeSliders.length; i++) {
+			var randomSpeed = Math.floor(Math.random() * (50 - 20 + 1)) + 20; // speeds: 20-50 (20 is fastest)
+			var direction   = (Math.floor(Math.random() * 2)) ? "up" : "down";
+
+			var el = rangeSliders[i];
+			pixelator.sliderAnimationData.push({
+				el: el,
+				speed: randomSpeed,
+				direction: direction,
+				value: el.value,
+				min: el.min,
+				max: el.max
+			});
+		}
+
+		// update the animation button
+
+		// now start animating
+
+		console.profile();
+
+		var numSliders = pixelator.sliderAnimationData.length;
+		var sliders = pixelator.sliderAnimationData;
+
+		pixelator.animationCounter = 1;
+		pixelator.animationInterval = setInterval(function() {
+
+			if (pixelator.animationCounter === 200) {
+				clearInterval(pixelator.animationInterval);
+				console.profileEnd();
+			}
+
+			for (var i=0; i<numSliders; i++) {
+				var currSliderData = sliders[i];
+				if (pixelator.animationCounter % currSliderData.speed === 0) {
+					if (currSliderData.direction === "up") {
+						var nextVal = ++currSliderData.value;
+						if (currSliderData.value >= currSliderData.max) {
+							currSliderData.direction = "down";
+							currSliderData.value = currSliderData.max - 1;
+							nextVal = currSliderData.value;
+						}
+						currSliderData.el.value = nextVal;
+					} else {
+						var nextVal = --currSliderData.value;
+						if (currSliderData.value <= currSliderData.min) {
+							currSliderData.direction = "up";
+							currSliderData.value = currSliderData.min + 1;
+							nextVal = currSliderData.value;
+						}
+						currSliderData.el.value = nextVal;
+					}
+				}
+			}
+			pixelator.repixelate();
+			pixelator.animationCounter++;
+		}, 10);
     },
+
+	stop_animation: function() {
+		"use strict";
+		if (pixelator.animationCounter !== null) {
+			clearInterval(pixelator.animationCounter);
+		}
+	},
 
 	_get_param_by_name: function(name) {
         "use strict";
-
 		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
 		var regexS = "[\\?&]"+name+"=([^&#]*)";
 		var regex = new RegExp(regexS);

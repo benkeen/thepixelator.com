@@ -4,11 +4,11 @@
 	<meta charset="utf-8" />
 	<title>The Pixelator</title>
 	<link rel="stylesheet" href="resources/css/styles.css">
-	<link href="resources/scripts/jquery-ui-1.8.10.custom/css/custom-theme/jquery-ui-1.8.10.custom.css" rel="stylesheet" />
-	<script src="resources/scripts/modernizr-1.7.min.js"></script>
+	<link href="resources/scripts/jqueryui/ui-smoothness/jqueryui.min.css" rel="stylesheet" />
+	<script src="resources/scripts/modernizr.js"></script>
 	<script src="resources/scripts/jquery.js"></script>
 	<script src="resources/scripts/ahpi.imgload.js"></script>
-	<script src="resources/scripts/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>
+	<script src="resources/scripts/jqueryui/jqueryui.min.js"></script>
 	<script src="resources/scripts/close-pixelate.js"></script>
 	<script src="resources/scripts/pixelator.js?v=4"></script>
     <script>$(pixelator.init);</script>
@@ -52,19 +52,17 @@
 			<div class="clear"> </div>
 			<div id="settings">
 				<div id="setting_groups"></div>
-					<div>
-						<a href="#" onclick="return pixelator.add_setting({repixelate: true})">Add Layer &raquo;</a>
-					</div>
-				</div>
+                <div>
+                    <a href="#" id="add_layer_link">Add Layer &raquo;</a>
+                </div>
 			</div>
 		</div>
 		<div id="col2">
 
             <ul id="view_mode">
-                <li>Original Image</li>
-                <li class="selected">Pixelated Image</li>
-                <li>Full Screen</li>
-                <li>Full Screen Animated</li>
+                <li data-mode="original">Original Image</li>
+                <li data-mode="pixelate" class="selected">Pixelated Image</li>
+                <li id="animation" data-mode="animate">Start Animation</li>
             </ul>
             <div class="clear pad_small"></div>
 
@@ -160,9 +158,9 @@
 			<label>Shape</label>
 			<div class="setting_field">
 				<select name="shape%%ROW%%" class="shape">
-				<option value="circle" %%CIRCLE_SELECTED%%>Circle</option>
-				<option value="square" %%SQUARE_SELECTED%%>Square</option>
-				<option value="diamond" %%DIAMOND_SELECTED%%>Diamond</option>
+                    <option value="circle" %%CIRCLE_SELECTED%%>Circle</option>
+                    <option value="square" %%SQUARE_SELECTED%%>Square</option>
+                    <option value="diamond" %%DIAMOND_SELECTED%%>Diamond</option>
 				</select>
 			</div>
 			<div class="clear"></div>
@@ -170,18 +168,18 @@
 		<li class="sliders">
 			<label>Spacing</label>
 			<div class="setting_field">
-				<input type="range" class="resolution" min="8" max="200" step="2" value="%%RESOLUTION%%" />
+				<input type="range" class="resolution animatable" min="8" max="200" step="2" value="%%RESOLUTION%%" />
 			</div>
 			<label>Offset</label>
 			<div class="setting_field">
-				<input type="range" class="offset" min="0" max="100" step="1" value="%%OFFSET%%" />
+				<input type="range" class="offset animatable" min="0" max="100" step="1" value="%%OFFSET%%" />
 			</div>
 			<div class="clear"></div>
 		</li>
 		<li class="sliders">
 			<label>Size</label>
 			<div class="setting_field">
-				<input type="range" class="size" min="2" max="200" step="1" value="%%SIZE%%" />
+				<input type="range" class="size animatable" min="2" max="200" step="1" value="%%SIZE%%" />
 			</div>
 			<label>Alpha</label>
 			<div class="setting_field">
