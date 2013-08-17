@@ -1,4 +1,4 @@
-# generatedata.com
+# thepixelator.com
 
 This is the repo for the standalone, downloadable version of [thepixelator.com.](http://thepixelator.com).
 
@@ -9,7 +9,7 @@ of the public site.
 ## Versions
 
 ### 1.0.0
-The version currently running on the public site. This version is tagged (click on "tags"!).
+The version currently running on the public site. This version is tagged (click on "tags"!)
 
 ### 1.1.0 (trunk)
 A few more experiments I'm trying out. I was originally hoping to add in a "animate" option that would slowly change the sliders
